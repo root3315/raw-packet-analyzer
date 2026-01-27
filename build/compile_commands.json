@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/tmp/raw-packet-analyzer_1773314124/build",
+  "command": "/bin/c++  -I/tmp/raw-packet-analyzer_1773314124/include -O2 -Wall -Wextra -Wpedantic -std=c++17 -o CMakeFiles/packet-analyzer.dir/src/main.cpp.o -c /tmp/raw-packet-analyzer_1773314124/src/main.cpp",
+  "file": "/tmp/raw-packet-analyzer_1773314124/src/main.cpp"
+},
+{
+  "directory": "/tmp/raw-packet-analyzer_1773314124/build",
+  "command": "/bin/c++  -I/tmp/raw-packet-analyzer_1773314124/include -O2 -Wall -Wextra -Wpedantic -std=c++17 -o CMakeFiles/packet-analyzer.dir/src/packet.cpp.o -c /tmp/raw-packet-analyzer_1773314124/src/packet.cpp",
+  "file": "/tmp/raw-packet-analyzer_1773314124/src/packet.cpp"
+},
+{
+  "directory": "/tmp/raw-packet-analyzer_1773314124/build",
+  "command": "/bin/c++  -I/tmp/raw-packet-analyzer_1773314124/include -O2 -Wall -Wextra -Wpedantic -std=c++17 -o CMakeFiles/packet-analyzer.dir/src/analyzer.cpp.o -c /tmp/raw-packet-analyzer_1773314124/src/analyzer.cpp",
+  "file": "/tmp/raw-packet-analyzer_1773314124/src/analyzer.cpp"
+},
+{
+  "directory": "/tmp/raw-packet-analyzer_1773314124/build",
+  "command": "/bin/c++  -I/tmp/raw-packet-analyzer_1773314124/include -O2 -Wall -Wextra -Wpedantic -std=c++17 -o CMakeFiles/packet-analyzer-tests.dir/tests/test_packet.cpp.o -c /tmp/raw-packet-analyzer_1773314124/tests/test_packet.cpp",
+  "file": "/tmp/raw-packet-analyzer_1773314124/tests/test_packet.cpp"
+},
+{
+  "directory": "/tmp/raw-packet-analyzer_1773314124/build",
+  "command": "/bin/c++  -I/tmp/raw-packet-analyzer_1773314124/include -O2 -Wall -Wextra -Wpedantic -std=c++17 -o CMakeFiles/packet-analyzer-tests.dir/src/packet.cpp.o -c /tmp/raw-packet-analyzer_1773314124/src/packet.cpp",
+  "file": "/tmp/raw-packet-analyzer_1773314124/src/packet.cpp"
+},
+{
+  "directory": "/tmp/raw-packet-analyzer_1773314124/build",
+  "command": "/bin/c++  -I/tmp/raw-packet-analyzer_1773314124/include -O2 -Wall -Wextra -Wpedantic -std=c++17 -o CMakeFiles/packet-analyzer-tests.dir/src/analyzer.cpp.o -c /tmp/raw-packet-analyzer_1773314124/src/analyzer.cpp",
+  "file": "/tmp/raw-packet-analyzer_1773314124/src/analyzer.cpp"
+}
+]
