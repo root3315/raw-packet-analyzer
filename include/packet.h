@@ -64,6 +64,18 @@ struct ICMPHeader {
     uint32_t rest_of_header;
 };
 
+struct ARPPacket {
+    uint16_t hardware_type;
+    uint16_t protocol_type;
+    uint8_t hardware_size;
+    uint8_t protocol_size;
+    uint16_t opcode;
+    uint8_t sender_mac[6];
+    uint8_t sender_ip[4];
+    uint8_t target_mac[6];
+    uint8_t target_ip[4];
+};
+
 #pragma pack(pop)
 
 enum class Protocol {
@@ -108,8 +120,11 @@ struct ParsedPacket {
     
     std::vector<uint8_t> raw_data;
     std::vector<uint8_t> payload;
-    
-    ParsedPacket() 
+
+    ARPPacket arp_info;
+    uint16_t arp_opcode;
+
+    ParsedPacket()
         : link_layer(Protocol::UNKNOWN)
         , network_layer(Protocol::UNKNOWN)
         , transport_layer(Protocol::UNKNOWN)
@@ -118,7 +133,8 @@ struct ParsedPacket {
         , packet_size(0)
         , header_size(0)
         , payload_size(0)
-        , is_valid(false) {}
+        , is_valid(false)
+        , arp_opcode(0) {}
 };
 
 class PacketParser {
@@ -143,6 +159,7 @@ private:
     bool parseTCP(const uint8_t* data, size_t length, ParsedPacket& packet);
     bool parseUDP(const uint8_t* data, size_t length, ParsedPacket& packet);
     bool parseICMP(const uint8_t* data, size_t length, ParsedPacket& packet);
+    bool parseARP(const uint8_t* data, size_t length, ParsedPacket& packet);
 };
 
 } // namespace packet

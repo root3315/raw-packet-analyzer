@@ -79,24 +79,24 @@ std::vector<uint8_t> createEthernetIPv4TCPPacket() {
 
 std::vector<uint8_t> createEthernetIPv4UDPPacket() {
     std::vector<uint8_t> packet(42, 0);
-    
+
     packet[0] = 0x00;
     packet[1] = 0xaa;
     packet[2] = 0xbb;
     packet[3] = 0xcc;
     packet[4] = 0xdd;
     packet[5] = 0xee;
-    
+
     packet[6] = 0x00;
     packet[7] = 0x11;
     packet[8] = 0x22;
     packet[9] = 0x33;
     packet[10] = 0x44;
     packet[11] = 0x55;
-    
+
     packet[12] = 0x08;
     packet[13] = 0x00;
-    
+
     packet[14] = 0x45;
     packet[15] = 0x00;
     packet[16] = 0x00;
@@ -109,24 +109,83 @@ std::vector<uint8_t> createEthernetIPv4UDPPacket() {
     packet[23] = 0x11;
     packet[24] = 0x00;
     packet[25] = 0x00;
-    
+
     packet[26] = 172;
     packet[27] = 16;
     packet[28] = 0;
     packet[29] = 1;
-    
+
     packet[30] = 8;
     packet[31] = 8;
     packet[32] = 8;
     packet[33] = 8;
-    
+
     packet[34] = 0xc0;
     packet[35] = 0x00;
     packet[36] = 0x00;
     packet[37] = 0x35;
     packet[38] = 0x00;
     packet[39] = 0x0a;
-    
+
+    return packet;
+}
+
+std::vector<uint8_t> createEthernetARPPacket() {
+    std::vector<uint8_t> packet(42, 0);
+
+    packet[0] = 0xff;
+    packet[1] = 0xff;
+    packet[2] = 0xff;
+    packet[3] = 0xff;
+    packet[4] = 0xff;
+    packet[5] = 0xff;
+
+    packet[6] = 0x00;
+    packet[7] = 0x1a;
+    packet[8] = 0x2b;
+    packet[9] = 0x3c;
+    packet[10] = 0x4d;
+    packet[11] = 0x5e;
+
+    packet[12] = 0x08;
+    packet[13] = 0x06;
+
+    packet[14] = 0x00;
+    packet[15] = 0x01;
+
+    packet[16] = 0x08;
+    packet[17] = 0x00;
+
+    packet[18] = 0x06;
+    packet[19] = 0x04;
+
+    packet[20] = 0x00;
+    packet[21] = 0x01;
+
+    packet[22] = 0x00;
+    packet[23] = 0x1a;
+    packet[24] = 0x2b;
+    packet[25] = 0x3c;
+    packet[26] = 0x4d;
+    packet[27] = 0x5e;
+
+    packet[28] = 192;
+    packet[29] = 168;
+    packet[30] = 1;
+    packet[31] = 100;
+
+    packet[32] = 0x00;
+    packet[33] = 0x00;
+    packet[34] = 0x00;
+    packet[35] = 0x00;
+    packet[36] = 0x00;
+    packet[37] = 0x00;
+
+    packet[38] = 10;
+    packet[39] = 0;
+    packet[40] = 0;
+    packet[41] = 1;
+
     return packet;
 }
 
@@ -198,9 +257,9 @@ void test_parse_tcp_packet() {
 void test_parse_udp_packet() {
     packet::PacketParser parser;
     std::vector<uint8_t> pkt = createEthernetIPv4UDPPacket();
-    
+
     packet::ParsedPacket result = parser.parse(pkt);
-    
+
     if (result.is_valid &&
         result.link_layer == packet::Protocol::ETHERNET &&
         result.network_layer == packet::Protocol::IPv4 &&
@@ -219,6 +278,33 @@ void test_parse_udp_packet() {
     }
 }
 
+void test_parse_arp_packet() {
+    packet::PacketParser parser;
+    std::vector<uint8_t> pkt = createEthernetARPPacket();
+
+    packet::ParsedPacket result = parser.parse(pkt);
+
+    if (result.is_valid &&
+        result.link_layer == packet::Protocol::ETHERNET &&
+        result.network_layer == packet::Protocol::ARP &&
+        result.src_mac == "00:1a:2b:3c:4d:5e" &&
+        result.dest_mac == "00:00:00:00:00:00" &&
+        result.src_ip == "192.168.1.100" &&
+        result.dest_ip == "10.0.0.1" &&
+        result.arp_opcode == 1) {
+        test_passed("test_parse_arp_packet");
+    } else {
+        std::string reason = "Valid: " + std::to_string(result.is_valid) +
+                            ", Network: " + std::to_string(static_cast<int>(result.network_layer)) +
+                            ", SrcMAC: " + result.src_mac +
+                            ", DstMAC: " + result.dest_mac +
+                            ", SrcIP: " + result.src_ip +
+                            ", DstIP: " + result.dest_ip +
+                            ", Opcode: " + std::to_string(result.arp_opcode);
+        test_failed("test_parse_arp_packet", reason);
+    }
+}
+
 void test_parse_invalid_packet() {
     packet::PacketParser parser;
     std::vector<uint8_t> pkt = createTooSmallPacket();
@@ -234,30 +320,36 @@ void test_parse_invalid_packet() {
 
 void test_analyzer_stats() {
     analyzer::PacketAnalyzer analyzer;
-    
+
     std::vector<uint8_t> tcp_pkt = createEthernetIPv4TCPPacket();
     std::vector<uint8_t> udp_pkt = createEthernetIPv4UDPPacket();
-    
+    std::vector<uint8_t> arp_pkt = createEthernetARPPacket();
+
     for (int i = 0; i < 5; ++i) {
         analyzer.analyze(tcp_pkt);
     }
     for (int i = 0; i < 3; ++i) {
         analyzer.analyze(udp_pkt);
     }
-    
+    for (int i = 0; i < 2; ++i) {
+        analyzer.analyze(arp_pkt);
+    }
+
     analyzer::TrafficStats stats = analyzer.getStats();
-    
-    if (stats.total_packets == 8 &&
+
+    if (stats.total_packets == 10 &&
         stats.tcp_packets == 5 &&
         (stats.udp_packets + stats.dns_packets) == 3 &&
-        stats.ipv4_packets == 8) {
+        stats.ipv4_packets == 8 &&
+        stats.arp_packets == 2) {
         test_passed("test_analyzer_stats");
     } else {
         std::string reason = "Total: " + std::to_string(stats.total_packets) +
                             ", TCP: " + std::to_string(stats.tcp_packets) +
                             ", UDP: " + std::to_string(stats.udp_packets) +
                             ", DNS: " + std::to_string(stats.dns_packets) +
-                            ", IPv4: " + std::to_string(stats.ipv4_packets);
+                            ", IPv4: " + std::to_string(stats.ipv4_packets) +
+                            ", ARP: " + std::to_string(stats.arp_packets);
         test_failed("test_analyzer_stats", reason);
     }
 }
@@ -374,9 +466,10 @@ int main() {
     test_protocol_to_string();
     test_ntohs_ntohl();
     test_format_bytes();
-    
+
     test_parse_tcp_packet();
     test_parse_udp_packet();
+    test_parse_arp_packet();
     test_parse_invalid_packet();
     
     test_packet_filter();

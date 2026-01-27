@@ -113,8 +113,9 @@ bool PacketParser::parseEthernet(const uint8_t* data, size_t length, ParsedPacke
         }
     } else if (ether_type == 0x0806) {
         packet.network_layer = Protocol::ARP;
-        packet.header_size = static_cast<uint32_t>(header_size);
-        packet.payload_size = static_cast<uint32_t>(remaining);
+        if (!parseARP(payload, remaining, packet)) {
+            return false;
+        }
     } else {
         packet.header_size = static_cast<uint32_t>(header_size);
         packet.payload_size = static_cast<uint32_t>(remaining);
@@ -283,18 +284,61 @@ bool PacketParser::parseICMP(const uint8_t* data, size_t length, ParsedPacket& p
         packet.payload_size = static_cast<uint32_t>(length);
         return false;
     }
-    
+
     const auto* icmp = reinterpret_cast<const ICMPHeader*>(data);
-    
+
     packet.header_size += sizeof(ICMPHeader);
-    
+
     if (length > sizeof(ICMPHeader)) {
         packet.payload.assign(data + sizeof(ICMPHeader), data + length);
         packet.payload_size = static_cast<uint32_t>(length - sizeof(ICMPHeader));
     } else {
         packet.payload_size = 0;
     }
-    
+
+    return true;
+}
+
+bool PacketParser::parseARP(const uint8_t* data, size_t length, ParsedPacket& packet) {
+    if (length < sizeof(ARPPacket)) {
+        packet.is_valid = false;
+        packet.error_message = "Packet too small for ARP header";
+        return false;
+    }
+
+    const auto* arp = reinterpret_cast<const ARPPacket*>(data);
+
+    packet.arp_info.hardware_type = swap16(arp->hardware_type);
+    packet.arp_info.protocol_type = swap16(arp->protocol_type);
+    packet.arp_info.hardware_size = arp->hardware_size;
+    packet.arp_info.protocol_size = arp->protocol_size;
+    packet.arp_opcode = swap16(arp->opcode);
+
+    std::memcpy(packet.arp_info.sender_mac, arp->sender_mac, 6);
+    std::memcpy(packet.arp_info.sender_ip, arp->sender_ip, 4);
+    std::memcpy(packet.arp_info.target_mac, arp->target_mac, 6);
+    std::memcpy(packet.arp_info.target_ip, arp->target_ip, 4);
+
+    packet.header_size = static_cast<uint32_t>(sizeof(EthernetHeader) + sizeof(ARPPacket));
+    packet.payload_size = 0;
+
+    if (packet.arp_info.hardware_size == 6 && packet.arp_info.protocol_size == 4) {
+        packet.src_mac = macToString(arp->sender_mac);
+        packet.dest_mac = macToString(arp->target_mac);
+
+        uint32_t sender_ip = (static_cast<uint32_t>(arp->sender_ip[0]) << 24) |
+                             (static_cast<uint32_t>(arp->sender_ip[1]) << 16) |
+                             (static_cast<uint32_t>(arp->sender_ip[2]) << 8) |
+                             static_cast<uint32_t>(arp->sender_ip[3]);
+        uint32_t target_ip = (static_cast<uint32_t>(arp->target_ip[0]) << 24) |
+                             (static_cast<uint32_t>(arp->target_ip[1]) << 16) |
+                             (static_cast<uint32_t>(arp->target_ip[2]) << 8) |
+                             static_cast<uint32_t>(arp->target_ip[3]);
+
+        packet.src_ip = ipv4ToString(sender_ip);
+        packet.dest_ip = ipv4ToString(target_ip);
+    }
+
     return true;
 }
 

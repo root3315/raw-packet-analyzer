@@ -162,6 +162,7 @@ std::string PacketAnalyzer::generateReport() const {
     oss << "  UDP Packets: " << stats_.udp_packets << "\n";
     oss << "  ICMP Packets: " << stats_.icmp_packets << "\n";
     oss << "  DNS Packets: " << stats_.dns_packets << "\n";
+    oss << "  ARP Packets: " << stats_.arp_packets << "\n";
     oss << "  Malformed: " << stats_.malformed_packets << "\n\n";
     
     oss << "--- Top Source IPs ---\n";
@@ -259,9 +260,13 @@ void PacketAnalyzer::updateStats(const packet::ParsedPacket& pkt) {
     } else if (pkt.transport_layer == packet::Protocol::ICMP) {
         stats_.icmp_packets++;
     }
-    
+
     if (pkt.transport_layer == packet::Protocol::DNS) {
         stats_.dns_packets++;
+    }
+
+    if (pkt.network_layer == packet::Protocol::ARP) {
+        stats_.arp_packets++;
     }
     
     if (!pkt.src_ip.empty()) {

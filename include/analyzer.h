@@ -19,13 +19,14 @@ struct TrafficStats {
     uint64_t ipv4_packets;
     uint64_t ipv6_packets;
     uint64_t dns_packets;
+    uint64_t arp_packets;
     uint64_t malformed_packets;
-    
+
     std::map<std::string, uint64_t> src_ip_counts;
     std::map<std::string, uint64_t> dest_ip_counts;
     std::map<uint16_t, uint64_t> port_counts;
     std::set<std::string> unique_macs;
-    
+
     TrafficStats()
         : total_packets(0)
         , total_bytes(0)
@@ -35,6 +36,7 @@ struct TrafficStats {
         , ipv4_packets(0)
         , ipv6_packets(0)
         , dns_packets(0)
+        , arp_packets(0)
         , malformed_packets(0) {}
 };
 
